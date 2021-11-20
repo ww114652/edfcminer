@@ -29,6 +29,23 @@ def save_images(root_path, soup):
 
             img["src"] = f"imgs/{file_name}"
 
+def get_last_page_index(soup):
+    spans = soup.find_all("span", attrs={"class": "paging"})
+    if len(spans) == 0:
+        return 1
+    
+    return int(re.findall(r"page=(\d+)", spans[0].find_all("a")[-1]["href"])[0])
+
+def change_navs(soup, html_name):
+    spans = soup.find_all("span", attrs={"class": "paging"})
+    if len(spans) == 0:
+        return
+
+    for span in spans:
+        for a in span.find_all("a"):
+            index = int(re.findall(r"page=(\d+)", a["href"])[0])
+            a["href"] = f"{html_name}_{index}.html"
+
 def save_page(ttype, tid, page_index):
     url = ""
     if (ttype == "s"):
@@ -45,9 +62,13 @@ def save_page(ttype, tid, page_index):
     if os.path.exists(folder_name) == False:
         os.makedirs(folder_name)
     save_images(folder_name, soup)
-
-
-    with open(f"{folder_name}/{sanitize(soup.title.text)}_{page_index}.html", 'w') as saved:
+    html_name = sanitize(soup.title.text)
+    not_last_page = page_index < get_last_page_index(soup)
+    change_navs(soup, html_name)
+    with open(f"{folder_name}/{html_name}_{page_index}.html", 'w') as saved:
         print(str(soup), file=saved)
+
+    if not_last_page:
+        save_page(ttype, tid, page_index + 1)
 
 save_page("w", 8344473, 1)
