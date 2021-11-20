@@ -4,6 +4,7 @@ import shutil
 
 import requests
 from bs4 import *
+from sanitize_filename import sanitize
 
 
 def download_img(src, img_path):
@@ -21,7 +22,7 @@ def save_images(root_path, soup):
             os.mkdir(img_folder)
         for img in images:
             src = img["data-original"]
-            file_name = src[src.rindex("/")+1:]
+            file_name = sanitize(src[src.rindex("/")+1:])
             img_path = f"{img_folder}/{file_name}"
             if os.path.exists(img_path) == False:
                 download_img(src, img_path)
@@ -46,7 +47,7 @@ def save_page(ttype, tid, page_index):
     save_images(folder_name, soup)
 
 
-    with open(f"{folder_name}/{soup.title.text}_{page_index}.html", 'w') as saved:
+    with open(f"{folder_name}/{sanitize(soup.title.text)}_{page_index}.html", 'w') as saved:
         print(str(soup), file=saved)
 
 save_page("w", 8344473, 1)
