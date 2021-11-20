@@ -17,7 +17,7 @@ def download_img(src, img_path):
             shutil.copyfileobj(ir.raw, f)
 
 def save_images(root_path, soup):
-    images = soup.find_all("img", attrs={"data-original": re.compile("pic2.52tgfc.com")})
+    images = soup.find_all("img", attrs={"data-original": re.compile(r"tgfc\w*\.com")})
     if len(images) > 0:
         img_folder = f"{root_path}/imgs"
         if os.path.exists(img_folder) == False:
@@ -48,14 +48,16 @@ def change_navs(soup, html_name):
             index = int(re.findall(r"page=(\d+)", a["href"])[0])
             a["href"] = f"{html_name}_{index}.html"
 
-def save_page(ttype, tid, page_index):
+def save_page(ttype, tid, page_index, auth_key):
     url = ""
-    if (ttype == "s"):
+    cookies = {}
+    if (ttype == "s" or ttype == "S"):
         url = f"https://s.tgfcer.com/wap/index.php?action=thread&tid={tid}&pic=1&page={page_index}"
+        cookies = {"tgc_pika_verify": auth_key}
     else:
         url = f"https://wap.tgfcer.com/index.php?action=thread&tid={tid}&pic=1&page={page_index}"
     
-    r = requests.get(url)
+    r = requests.get(url, cookies=cookies)
     soup = BeautifulSoup(r.text, "html.parser")
     if len(soup.find_all("div", attrs={"class": "message"})) == 0:
         p = soup.find("p", string=[NOT_EXISTS, NO_PERMISSION])
@@ -68,7 +70,7 @@ def save_page(ttype, tid, page_index):
     for s in soup.find_all("script"):
         s.decompose()
 
-    folder_name = f"downloads/w{tid}"
+    folder_name = f"downloads/{ttype}{tid}"
     if os.path.exists(folder_name) == False:
         os.makedirs(folder_name)
     save_images(folder_name, soup)
@@ -79,6 +81,16 @@ def save_page(ttype, tid, page_index):
         print(str(soup), file=saved)
 
     if not_last_page:
-        save_page(ttype, tid, page_index + 1)
+        save_page(ttype, tid, page_index + 1, auth_key)
 
-save_page("w", 8344473, 1)
+
+ttype = input("输入板块类型，s为水区，t为其它区：")
+tid = input("输入id，网页链接中tid=后面的数字：")
+auth_key = ""
+if ttype == "s" or ttype == "S":
+    auth_key = input("水区需要输入身份验证信息，cookie中tgc_pika_verify的值：")
+    ttype = "s"
+else:
+    ttype = "t"
+
+save_page(ttype, tid, 1, auth_key)
