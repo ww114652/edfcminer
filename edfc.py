@@ -55,6 +55,10 @@ def save_page(ttype, tid, page_index):
     
     r = requests.get(url)
     soup = BeautifulSoup(r.text, "html.parser")
+    if len(soup.find_all("div", attrs={"class": "message"})) == 0:
+        print("指定主题不存在，终止执行。")
+        return
+        
     for s in soup.find_all("script"):
         s.decompose()
 
