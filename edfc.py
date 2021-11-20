@@ -6,6 +6,8 @@ import requests
 from bs4 import *
 from sanitize_filename import sanitize
 
+NOT_EXISTS = "指定主题不存在"
+NO_PERMISSION = "无权查看本主题"
 
 def download_img(src, img_path):
     ir = requests.get(src, stream=True)
@@ -56,9 +58,13 @@ def save_page(ttype, tid, page_index):
     r = requests.get(url)
     soup = BeautifulSoup(r.text, "html.parser")
     if len(soup.find_all("div", attrs={"class": "message"})) == 0:
-        print("指定主题不存在，终止执行。")
+        p = soup.find("p", string=[NOT_EXISTS, NO_PERMISSION])
+        if p is None:
+            print("错误，原因不明。")
+        else:
+            print(p.text)
         return
-        
+
     for s in soup.find_all("script"):
         s.decompose()
 
