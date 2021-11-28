@@ -51,7 +51,7 @@ def change_navs(soup, html_name):
 def save_page(ttype, tid, page_index, auth_key):
     url = ""
     cookies = {}
-    if (ttype == "s" or ttype == "S"):
+    if ttype == "s":
         url = f"https://s.tgfcer.com/wap/index.php?action=thread&tid={tid}&pic=1&page={page_index}"
         cookies = {"tgc_pika_verify": auth_key}
     else:
@@ -77,7 +77,7 @@ def save_page(ttype, tid, page_index, auth_key):
     html_name = sanitize(soup.title.text)
     not_last_page = page_index < get_last_page_index(soup)
     change_navs(soup, html_name)
-    with open(f"{folder_name}/{html_name}_{page_index}.html", 'w') as saved:
+    with open(f"{folder_name}/{html_name}_{page_index}.html", 'w', encoding="utf-8") as saved:
         print(str(soup), file=saved)
 
     if not_last_page:
@@ -87,7 +87,7 @@ def save_page(ttype, tid, page_index, auth_key):
 ttype = input("输入板块类型，s为水区，t为其它区：")
 tid = input("输入id，网页链接中tid=后面的数字：")
 auth_key = ""
-if ttype == "s" or ttype == "S":
+if ttype in ["s", "S"]:
     auth_key = input("水区需要输入身份验证信息，cookie中tgc_pika_verify的值：")
     ttype = "s"
 else:
